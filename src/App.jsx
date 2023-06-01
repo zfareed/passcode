@@ -5,25 +5,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Home from './components/home';
 import AddItemPage from './components/addItemPage';
 
-// function HomeScreen({ navigation }) {
-//   return (
-//     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-//       <Text>Home Screen</Text>
-//       <Button
-//         title="Go to Details"
-//         onPress={() => navigation.navigate('Details')}
-//       />
-//     </View>
-//   );
-// }
-
-// function DetailsScreen() {
-//   return (
-//     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-//       <Text>Details Screen</Text>
-//     </View>
-//   );
-// }
 
 const Stack = createNativeStackNavigator();
 
