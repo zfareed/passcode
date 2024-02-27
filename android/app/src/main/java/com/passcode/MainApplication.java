@@ -1,4 +1,4 @@
-package com.passcode;
+package com.zain.passcode;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

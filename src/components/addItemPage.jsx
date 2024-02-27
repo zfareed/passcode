@@ -1,30 +1,47 @@
-// import React from "react";
-// import { View, Text } from "react-native";
+import React, {useEffect, useState} from 'react';
+import {View, TextInput, Button, StyleSheet} from 'react-native';
+import firestore from '@react-native-firebase/firestore';
 
-// // A custom component with a view that has height 100%
-// const AddItemPage = ({navigation}) => {
-// return (
-// <View>
-// <Text style={{fontSize: 18}}> Edit Page</Text>
-// </View>
-// );
-// };
+const AddItemPage = ({route}) => {
+  const {val1, val2, val3, val4} = route.params;
 
-// export default AddItemPage;
+  const [platform, setPlatform] = useState(val1);
+  const [passcode, setPasscode] = useState(val2);
+  const [description, setDescription] = useState(val3);
+  const [id] = useState(val4);
+  const [btnTitle, setBtnTitle] = useState('Save');
 
-import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
-
-const AddItemPage = () => {
-  const [platform, setPlatform] = useState('');
-  const [passcode, setPasscode] = useState('');
-  const [description, setDescription] = useState('');
+  useEffect(() => {
+    if (id !== null) {
+      setBtnTitle('Update');
+    }
+  }, []);
 
   const handleSave = () => {
-    // Perform save operation with the entered data
-    console.log('Platform:', platform);
-    console.log('Passcode:', passcode);
-    console.log('Description:', description);
+    if (id === null) {
+      firestore()
+        .collection('Data')
+        .add({
+          platform: platform,
+          passcode: passcode,
+          description: description,
+        })
+        .then(() => {
+          console.log('Data added!');
+        });
+    } else {
+      firestore()
+        .collection('Data')
+        .doc(id)
+        .update({
+          platform: platform,
+          passcode: passcode,
+          description: description,
+        })
+        .then(() => {
+          console.log('Data updated!');
+        });
+    }
   };
 
   return (
@@ -45,9 +62,11 @@ const AddItemPage = () => {
         style={styles.input}
         placeholder="Description"
         value={description}
+        multiline={true}
+        numberOfLines={4}
         onChangeText={text => setDescription(text)}
       />
-      <Button title="Save" onPress={handleSave} />
+      <Button title={btnTitle} onPress={handleSave} color="#f4511e" />
     </View>
   );
 };
@@ -61,12 +80,14 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
+    height: 120,
     height: 40,
     marginBottom: 12,
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 4,
+    color: 'black',
   },
 });
 

@@ -1,4 +1,4 @@
-package com.passcode;
+package com.zain.passcode;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
