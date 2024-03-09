@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {View, TextInput, Button, StyleSheet} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, TextInput, Button, StyleSheet, ToastAndroid,Keyboard } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 
-const AddItemPage = ({route}) => {
-  const {val1, val2, val3, val4} = route.params;
+const AddItemPage = ({ route }) => {
+  const { val1, val2, val3, val4 } = route.params;
 
   const [platform, setPlatform] = useState(val1);
   const [passcode, setPasscode] = useState(val2);
@@ -18,6 +18,7 @@ const AddItemPage = ({route}) => {
   }, []);
 
   const handleSave = () => {
+    Keyboard.dismiss();
     if (id === null) {
       firestore()
         .collection('Data')
@@ -28,6 +29,7 @@ const AddItemPage = ({route}) => {
         })
         .then(() => {
           console.log('Data added!');
+          showToast('Data Added'); 
         });
     } else {
       firestore()
@@ -40,8 +42,14 @@ const AddItemPage = ({route}) => {
         })
         .then(() => {
           console.log('Data updated!');
+          showToast('Data Updated'); 
+
         });
     }
+  };
+
+  const showToast = (message) => {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
   };
 
   return (
@@ -59,7 +67,7 @@ const AddItemPage = ({route}) => {
         onChangeText={text => setPasscode(text)}
       />
       <TextInput
-        style={styles.input}
+          style={[styles.input, { height: 80, textAlignVertical: "top" }]}
         placeholder="Description"
         value={description}
         multiline={true}

@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -6,12 +7,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   Button,
+  ActivityIndicator,
+  ToastAndroid
 } from 'react-native';
+import { MenuProvider, Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firestore from '@react-native-firebase/firestore';
 
 // A custom component for each list item
-const ListItem = ({item}) => {
+const ListItem = ({ item }) => {
   const [showMenu, setShowMenu] = useState(false);
 
   const handleDelete = () => {
@@ -34,37 +38,59 @@ const ListItem = ({item}) => {
     });
   };
 
+  const handleMenuSelect = (value) => {
+    // Handle menu item selection logic
+    if (value === 'add') {
+      console.log(value);
+    } else if (value === 'delete') {
+      console.log(value);
+    }
+
+    // Close the menu
+    setShowMenu(false);
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.item} onPress={listItemClick}>
-        <View style={{flexDirection: 'column'}}>
+        <View style={{ flexDirection: 'column' }}>
           <Text style={styles.name}>{item[0].platform}</Text>
           <Text style={styles.pass}>************</Text>
         </View>
-        <TouchableOpacity
-          style={styles.icon}
-          onPress={() => setShowMenu(!showMenu)}>
-          <Icon name="ellipsis-v" size={20} />
-        </TouchableOpacity>
-        {showMenu && (
-          <View style={styles.menu}>
-            <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-              <Text style={styles.menuText}>Delete</Text>
+        <Menu
+          opened={showMenu}
+          onBackdropPress={() => setShowMenu(false)}
+        >
+          <MenuTrigger>
+            <TouchableOpacity style={styles.icon} onPress={() => setShowMenu(!showMenu)}>
+              <Icon name="ellipsis-v" size={20} />
             </TouchableOpacity>
-          </View>
-        )}
+          </MenuTrigger>
+          <MenuOptions customStyles={menuOptionsStyles}>
+            <MenuOption onSelect={() => handleMenuSelect('add')} text="Add" />
+            <MenuOption onSelect={() => handleMenuSelect('delete')} text="Delete" />
+          </MenuOptions>
+        </Menu>
       </TouchableOpacity>
     </View>
+
   );
 };
 
-const Home = ({navigation}) => {
-  const [mydata, setMyData] = useState([
-    {platform: 'Some Error', passcode: '', description: '', id: ''},
-  ]);
+const Home = ({ navigation }) => {
+  const [myData, setMyData] = useState(null);
 
-  useEffect(() => {
-    async function getData() {
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('in useFocus');
+      getData();
+    }, [])
+  );
+
+  const getData = async () => {
+    try {
+
       tempData = [];
       await firestore()
         .collection('Data')
@@ -77,12 +103,13 @@ const Home = ({navigation}) => {
           });
         });
       setMyData(tempData);
-    };
-    getData()
-  }, []);
+    } catch (error) {
+      showToast('Some error occurred!');
+    }
+  };
 
-  const renderItem = ({item}) => {
-    return <ListItem item={[item, navigation]}/>;
+  const renderItem = ({ item }) => {
+    return <ListItem item={[item, navigation]} />;
   };
 
   const addItemButton = () => {
@@ -94,20 +121,33 @@ const Home = ({navigation}) => {
     });
   };
 
+  const showToast = (message) => {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  };
+
   return (
-    <View style={{height: '100%'}}>
-      <FlatList
-        style={{height: '100%'}}
-        data={mydata}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-      />
-      <Button
-        title="Add Item"
-        onPress={addItemButton}
-        color="#f4511e"
-        style={{alignSelf: 'flex-end'}}
-      />
+    <View style={{ flex: 1 }}>
+      {myData === null ? (
+        <ActivityIndicator size="large" color="#f4511e" />
+      ) : (
+        <MenuProvider>
+          <React.Fragment>
+            <FlatList
+              style={{ flex: 1 }}
+              data={myData}
+              renderItem={renderItem}
+              keyExtractor={item => item.id}
+            />
+            <Button
+              title="Add Item"
+              onPress={addItemButton}
+              color="#f4511e"
+              style={{ alignSelf: 'flex-end' }}
+            />
+          </React.Fragment>
+        </MenuProvider>
+
+      )}
     </View>
   );
 };
@@ -126,7 +166,7 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     borderRadius: 7,
     shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
@@ -149,29 +189,31 @@ const styles = StyleSheet.create({
     height: '100%',
     width: 30,
   },
-  menu: {
-    zIndex: 9999999999,
-    position: 'absolute',
+});
+
+
+const menuOptionsStyles = {
+  optionsContainer: {
     right: 10,
-    top: 40,
+    marginTop: -20,
     backgroundColor: '#ffffff',
     borderRadius: 5,
     shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
+    width: 70,
+
   },
-  menuItem: {
-    paddingVertical: 10,
+  optionWrapper: {
+    paddingVertical: 5,
     paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
-  menuText: {
-    fontSize: 16,
+  optionText: {
+    fontSize: 14,
     color: '#333333',
   },
-});
+};
 
 export default Home;
